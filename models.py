@@ -41,6 +41,7 @@ class LSTM(object):
         self.dropout_keep_prob = dropout_keep_prob
         self.input_size = inputs.get_shape().as_list()[2]
 
+
         batch_states_shape = tf.stack([tf.shape(inputs)[0],
                                       2*self.hidden_layer_size])
         self._batch_start_states = tf.zeros(batch_states_shape,
@@ -60,7 +61,7 @@ class LSTM(object):
 
             states_list = []
             prev_layer_outputs = tf.nn.dropout(inputs, keep_prob)
-            for layer in xrange(self.num_layers):
+            for layer in range(self.num_layers):
 
                 def fixed_size_lstm_block(c_prev_and_m_prev, x_and_r):
                     if layer == 0:
@@ -369,8 +370,10 @@ def predict(sess, model, input_seqs, reset_seqs):
 
     batch_size = len(input_seqs)
     seq_durations = [len(seq) for seq in input_seqs]
-    input_sweep, reset_sweep = data.sweep_generator(
-        [input_seqs, reset_seqs], batch_size=batch_size).next()
+
+    gen = data.sweep_generator([input_seqs, reset_seqs], batch_size=batch_size)
+    sweep_list = next(gen)
+    input_sweep, reset_sweep = sweep_list
 
     logit_sweep = sess.run(model.logits, feed_dict={model.inputs: input_sweep,
                                                     model.resets: reset_sweep,

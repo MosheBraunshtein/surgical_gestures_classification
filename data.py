@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 
 import itertools
-import cPickle
+import _pickle as cPickle
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,11 +21,11 @@ class Dataset(object):
             pkl_path: A string. A path to the standardized Pickle file.
         """
 
-        with open(pkl_path, 'r') as f:
-            self.pkl_dict = cPickle.load(f)
+        with open(pkl_path, 'rb') as f:
+            self.pkl_dict = cPickle.load(f, encoding='latin1')
 
         assert all(seq.shape[1] - 1 == self.input_size
-                   for seq in self.all_data.values())
+                   for seq in list(self.all_data.values()))
 
     def get_seqs_by_user(self, user):
         """ Get a list of sequences corresponding to a user.
@@ -117,7 +117,8 @@ class Dataset(object):
     @property
     def input_size(self):
         """ An integer: the number of inputs per time step. """
-        return self.all_data.values()[0].shape[1] - 1
+        return list(self.all_data.values())[0].shape[1] - 1
+
 
 
 def normalize_seq(seq):
@@ -151,11 +152,22 @@ def prepare_raw_seq(seq):
     Returns:
         A tuple,
         input_seq: A 2-D float32 NumPy array with shape
-            `[duration, num_inputs]`. A normalized input sequence.
+            `[duration, num_inputs]`. A normalized input sequence. 
         reset_seq: A 2-D bool NumPy array with shape `[duration, 1]`.
         label_seq: A 2-D int NumPy array with shape `[duration, 1]`.
     """
 
+    """
+    input_seq 
+    ['PSM1_pos_x', 'PSM1_pos_y', 'PSM1_pos_z', 'PSM1_vel_x',
+     'PSM1_vel_y', 'PSM1_vel_z', 'PSM1_gripper',
+     'PSM2_pos_x', 'PSM2_pos_y', 'PSM2_pos_z', 'PSM_2_vel_x',
+     'PSM2_vel_y', 'PSM2_vel_z', 'PSM2_gripper',
+     'PSM1_kappa', 'PSM2_kappa',
+     'label'
+    ]
+
+    """
     input_seq = seq[:, :-1].astype(np.float)
     input_seq = normalize_seq(input_seq).astype(np.float32)
     duration = input_seq.shape[0]
@@ -175,7 +187,7 @@ def seq_ind_generator(num_seqs, shuffle=True):
         An integer in `[0, num_seqs)`.
     """
 
-    seq_inds = range(num_seqs)
+    seq_inds = list(range(num_seqs))
     while True:
         if shuffle:
             np.random.shuffle(seq_inds)
@@ -227,7 +239,7 @@ def sweep_generator(seq_list_list, batch_size, shuffle=False, num_sweeps=None):
     num_sweeps_visited = 0
     while num_sweeps_visited < num_sweeps:
 
-        new_seq_ind = [seq_ind_gen.next() for _ in xrange(batch_size)]
+        new_seq_ind = [next(seq_ind_gen) for _ in range(batch_size)]
         new_seq_durations = [seq_durations[i] for i in new_seq_ind]
         longest_duration = np.max(new_seq_durations)
         pad = lambda seq: np.pad(seq, [[0, longest_duration-len(seq)], [0, 0]],
@@ -312,3 +324,57 @@ def one_hot(labels, num_classes):
     encoding_matrix[range(labels.size), labels.flatten()] = 1
     encodings = encoding_matrix.reshape(list(labels.shape) + [num_classes])
     return encodings
+
+# def reconstructed_seq(input_seq,new_features):
+#     duration, _ = input_seq.shape
+
+#     psm1_pos = input_seq[:, 0:3]
+#     psm1_vel = input_seq[:, 3:6]
+#     psm1_grp = input_seq[:, 6:7] 
+    
+#     psm2_pos = input_seq[:, 7:10]
+#     psm2_vel = input_seq[:, 10:13]
+#     psm2_grp = input_seq[:, 13:14]
+
+#     labels = input_seq[:, -1]
+
+#     columns_to_stack = []
+
+#     for feat in new_features:
+#         if feat == "kappa":
+#             psm1_kappa = compute_kappa()
+#             columns_to_stack.append(psm1_kappa)
+            
+#             psm2_kappa = compute_kappa()
+#             columns_to_stack.append(psm2_kappa) 
+        
+#         elif feat == "lambda":
+#             psm1_lambda = compute_lambda()
+#             columns_to_stack.append(psm1_lambda) 
+
+#             psm2_lambda = compute_lambda()
+#             columns_to_stack.append(psm2_lambda) 
+
+#         elif feat == "tau":
+#             psm1_tau = compute_tau()
+#             columns_to_stack.append(psm1_tau) 
+
+#             psm2_tau = compute_tau()
+#             columns_to_stack.append(psm2_tau) 
+        
+#         elif feat == "pos":
+#             columns_to_stack.append(psm1_pos)
+#             columns_to_stack.append(psm2_pos)
+            
+#         elif feat == "vel":
+#             columns_to_stack.append(psm1_vel)
+#             columns_to_stack.append(psm2_vel)
+            
+#         elif feat == "gripper":
+#             columns_to_stack.append(psm1_grp)
+#             columns_to_stack.append(psm2_grp)
+
+        
+#     columns_to_stack.append(labels)
+#     new_input_seq = np.concatenate(columns_to_stack, axis=1)
+#     return new_input_seq

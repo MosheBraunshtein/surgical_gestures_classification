@@ -5,13 +5,14 @@ import argparse
 import itertools
 
 import numpy as np
-import cPickle
+import _pickle as cPickle
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import data
+from compute_geometric_features import compute_kappa
 
 DATASET_NAME = 'JIGSAWS'
 ORIG_CLASS_IDS = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11]
@@ -43,8 +44,7 @@ KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
 
 LABELS_USECOLS = [0, 1, 2]
 LABELS_COL_NAMES = ['start_frame', 'end_frame', 'string_label']
-LABELS_CONVERTERS = {2: lambda string_label: int(string_label.replace('G', ''))}
-
+LABELS_CONVERTERS = {2: lambda x: int(x.decode().replace('G', '')) if isinstance(x, bytes) else int(x.replace('G', ''))}
 STANDARDIZED_COL_NAMES = KINEMATICS_COL_NAMES + ['label']
 
 
@@ -60,7 +60,7 @@ def define_and_process_args():
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=formatter_class)
 
-    parser.add_argument('--data_dir', default='~/Data/JIGSAWS/Suturing',
+    parser.add_argument('--data_dir', default=r'C:\Users\win10\desktop\data\JIGSAWS\Suturing',
                         help='Data directory.')
     parser.add_argument('--data_filename', default='standardized_data.pkl',
                         help='''The name of the standardized-data pkl file that
@@ -114,11 +114,18 @@ def load_kinematics_and_labels(data_dir, trial_name):
         as a new column to the raw kinematics data (and are therefore
         represented as floats).
     """
-
     labels_dir = os.path.join(data_dir, 'transcriptions')
     labels_path = os.path.join(labels_dir, trial_name + '.txt')
 
+
     kinematics_data = load_kinematics(data_dir, trial_name)
+    
+    psm1_pos = kinematics_data[:, 0:3]
+    psm1_kappa = compute_kappa(psm1_pos, s=5)
+
+    psm2_pos = kinematics_data[:, 7:10]
+    psm2_kappa = compute_kappa(psm2_pos, s=5)
+
     raw_labels_data = np.genfromtxt(labels_path, dtype=np.int,
                                     converters=LABELS_CONVERTERS,
                                     usecols=LABELS_USECOLS)
@@ -129,7 +136,7 @@ def load_kinematics_and_labels(data_dir, trial_name):
         labels[mask] = label
     labels_data = labels.reshape(-1, 1)
 
-    data = np.concatenate([kinematics_data, labels_data], axis=1)
+    data = np.concatenate([kinematics_data, psm1_kappa, psm2_kappa, labels_data], axis=1)
     labeled_data_only_mask = labels_data.flatten() != 0
 
     return data[labeled_data_only_mask, :]
@@ -201,6 +208,7 @@ def main():
                     load_kinematics_and_new_labels(args.data_dir, trial_name),
                     factor=6)
                 for trial_name in all_trial_names}
+
     print('Downsampled to 5 Hz.')
     print()
 
@@ -217,13 +225,15 @@ def main():
     print('Saved label visualization to %s.' % vis_path)
     print()
 
+    KINEMATICS_COL_NAMES = ['psm1_kappa', 'psm1_gripper', 'psm2_kappa', 'psm2_gripper']
+    STANDARDIZED_COL_NAMES = KINEMATICS_COL_NAMES + ['label']
     export_dict = dict(
         dataset_name=DATASET_NAME, classes=CLASSES, num_classes=NUM_CLASSES,
         col_names=STANDARDIZED_COL_NAMES, all_users=ALL_USERS,
         user_to_trial_names=user_to_trial_names,
         all_trial_names=all_trial_names, all_data=all_data)
     standardized_data_path = os.path.join(args.data_dir, args.data_filename)
-    with open(standardized_data_path, 'w') as f:
+    with open(standardized_data_path, 'wb') as f:
         cPickle.dump(export_dict, f)
     print('Saved standardized data file %s.' % standardized_data_path)
     print()

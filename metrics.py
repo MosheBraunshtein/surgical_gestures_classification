@@ -51,8 +51,8 @@ def compute_edit_distance(prediction_seq, label_seq):
         dist_matrix[:, 0] = np.arange(len(seq1))
         dist_matrix[0, :] = np.arange(len(seq2))
 
-        for i in xrange(1, len(seq1)):
-            for j in xrange(1, len(seq2)):
+        for i in range(1, len(seq1)):
+            for j in range(1, len(seq2)):
                 if seq1[i] == seq2[j]:
                     dist_matrix[i, j] = dist_matrix[i-1, j-1]
                 else:

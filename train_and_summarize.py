@@ -4,7 +4,7 @@ import os
 import time
 import argparse
 import shutil
-import cPickle
+import _pickle as cPickle
 
 import matplotlib
 matplotlib.use('Agg')
@@ -30,7 +30,7 @@ def define_and_process_args():
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=formatter_class)
 
-    parser.add_argument('--data_dir', default='~/Data/JIGSAWS/Suturing',
+    parser.add_argument('--data_dir', default=r'C:\Users\win10\desktop\data\JIGSAWS\Suturing',
                         help='Data directory.')
     parser.add_argument('--data_filename', default='standardized_data.pkl',
                         help='''The name of the standardized-data pkl file that
@@ -113,7 +113,7 @@ def get_log_dir(args):
 
     test_users_str = '_'.join(args.test_users)
 
-    return os.path.join(args.data_dir, 'logs', params_str, test_users_str)
+    return os.path.join(args.data_dir, 'logs','kappa_gripper', params_str, test_users_str)
 
 
 def train(sess, model, optimizer, log_dir, batch_size, num_sweeps_per_summary,
@@ -209,11 +209,11 @@ def train(sess, model, optimizer, log_dir, batch_size, num_sweeps_per_summary,
                 print(line, file=f)
 
             label_path = os.path.join(log_dir, 'test_label_seqs.pkl')
-            with open(label_path, 'w') as f:
+            with open(label_path, 'wb') as f:
                 cPickle.dump(test_label_seqs, f)
 
             pred_path = os.path.join(log_dir, 'test_prediction_seqs.pkl')
-            with open(pred_path, 'w') as f:
+            with open(pred_path, 'wb') as f:
                 cPickle.dump(test_prediction_seqs, f)
 
             vis_filename = 'test_visualizations_%06d.png' % num_sweeps_visited
@@ -229,7 +229,7 @@ def train(sess, model, optimizer, log_dir, batch_size, num_sweeps_per_summary,
         if num_sweeps_visited % num_sweeps_per_save == 0:
             saver.save(sess, os.path.join(log_dir, 'model.ckpt'))
 
-        train_inputs, train_resets, train_labels = train_gen.next()
+        train_inputs, train_resets, train_labels = next(train_gen)
         # We squeeze here because otherwise the targets would have shape
         # [batch_size, duration, 1, num_classes].
         train_targets = data.one_hot(train_labels, model.target_size)
