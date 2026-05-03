@@ -120,11 +120,13 @@ def load_kinematics_and_labels(data_dir, trial_name):
 
     kinematics_data = load_kinematics(data_dir, trial_name)
     
-    psm1_pos = kinematics_data[:, 0:3]
-    psm1_kappa = compute_kappa(psm1_pos, s=5)
+    # psm1_pos = kinematics_data[:, 0:3]
+    # psm1_kappa = compute_kappa(psm1_pos, s=5)
+    # psm1_tau = compute_tau(psm1_pos, s=5)
 
-    psm2_pos = kinematics_data[:, 7:10]
-    psm2_kappa = compute_kappa(psm2_pos, s=5)
+    # psm2_pos = kinematics_data[:, 7:10]
+    # psm2_kappa = compute_kappa(psm2_pos, s=5)
+    # psm2_tau = compute_tau(psm2_pos, s=5)
 
     raw_labels_data = np.genfromtxt(labels_path, dtype=np.int,
                                     converters=LABELS_CONVERTERS,
@@ -136,7 +138,9 @@ def load_kinematics_and_labels(data_dir, trial_name):
         labels[mask] = label
     labels_data = labels.reshape(-1, 1)
 
-    data = np.concatenate([kinematics_data, psm1_kappa, psm2_kappa, labels_data], axis=1)
+    data = np.concatenate([kinematics_data, labels_data], axis=1)
+    # data = np.concatenate([kinematics_data, psm1_kappa, psm2_kappa,psm1_tau, psm2_tau, labels_data], axis=1)
+
     labeled_data_only_mask = labels_data.flatten() != 0
 
     return data[labeled_data_only_mask, :]
@@ -225,8 +229,6 @@ def main():
     print('Saved label visualization to %s.' % vis_path)
     print()
 
-    KINEMATICS_COL_NAMES = ['psm1_kappa', 'psm1_gripper', 'psm2_kappa', 'psm2_gripper']
-    STANDARDIZED_COL_NAMES = KINEMATICS_COL_NAMES + ['label']
     export_dict = dict(
         dataset_name=DATASET_NAME, classes=CLASSES, num_classes=NUM_CLASSES,
         col_names=STANDARDIZED_COL_NAMES, all_users=ALL_USERS,

@@ -265,6 +265,10 @@ def main():
         raise ValueError(message)
 
     dataset = data.Dataset(standardized_data_path)
+    all_data = dataset.all_data
+    print(type(all_data))
+    print(all_data['Suturing_B001'].shape)
+    exit(0)
     train_raw_seqs, test_raw_seqs = dataset.get_splits(args.test_users)
     train_triplets = [data.prepare_raw_seq(seq) for seq in train_raw_seqs]
     test_triplets = [data.prepare_raw_seq(seq) for seq in test_raw_seqs]
