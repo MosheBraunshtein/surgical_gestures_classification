@@ -39,8 +39,9 @@ ALL_USERS = sorted(USER_TO_TRIALS.keys())
 
 KINEMATICS_USECOLS = [c-1 for c in [39, 40, 41, 51, 52, 53, 57,
                                     58, 59, 60, 70, 71, 72, 76]]
-KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
-                        'vel_y', 'vel_z', 'gripper']*2
+# KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
+#                         'vel_y', 'vel_z', 'gripper']*2
+KINEMATICS_COL_NAMES = ['kappa', 'gripper']*2
 
 LABELS_USECOLS = [0, 1, 2]
 LABELS_COL_NAMES = ['start_frame', 'end_frame', 'string_label']
@@ -119,13 +120,18 @@ def load_kinematics_and_labels(data_dir, trial_name):
 
 
     kinematics_data = load_kinematics(data_dir, trial_name)
-    
-    # psm1_pos = kinematics_data[:, 0:3]
-    # psm1_kappa = compute_kappa(psm1_pos, s=5)
+
+    psm1_gripper = kinematics_data[:, 6].reshape(-1, 1)
+    psm2_gripper = kinematics_data[:, 13].reshape(-1, 1)
+    psm1_pos = kinematics_data[:, 0:3]
+    psm2_pos = kinematics_data[:, 7:10]
+
+
+
+    psm1_kappa = compute_kappa(psm1_pos, s=5)
     # psm1_tau = compute_tau(psm1_pos, s=5)
 
-    # psm2_pos = kinematics_data[:, 7:10]
-    # psm2_kappa = compute_kappa(psm2_pos, s=5)
+    psm2_kappa = compute_kappa(psm2_pos, s=5)
     # psm2_tau = compute_tau(psm2_pos, s=5)
 
     raw_labels_data = np.genfromtxt(labels_path, dtype=np.int,
@@ -138,8 +144,8 @@ def load_kinematics_and_labels(data_dir, trial_name):
         labels[mask] = label
     labels_data = labels.reshape(-1, 1)
 
-    data = np.concatenate([kinematics_data, labels_data], axis=1)
-    # data = np.concatenate([kinematics_data, psm1_kappa, psm2_kappa,psm1_tau, psm2_tau, labels_data], axis=1)
+    # data = np.concatenate([kinematics_data, labels_data], axis=1)
+    data = np.concatenate([ psm1_kappa, psm1_gripper, psm2_kappa, psm2_gripper], axis=1)
 
     labeled_data_only_mask = labels_data.flatten() != 0
 

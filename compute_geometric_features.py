@@ -28,6 +28,39 @@ def compute_kappa(pos, s=0.1):
     
     return kappa
 
+
+def compute_tau(pos, s=0.1):
+    print("COMPUTE TAU..")
+
+    eps_stability = 1e-8
+    
+    jitter = np.random.normal(0, 1e-9, pos.shape)
+    pos_jittered = pos + jitter
+
+
+    tck, u = splprep(pos_jittered.T, s=s, k=4)
+
+    v_list = splev(u, tck, der=1) 
+    a_list = splev(u, tck, der=2) 
+    j_list = splev(u, tck, der=3) 
+    
+    v = np.array(v_list).T
+    a = np.array(a_list).T
+    j = np.array(j_list).T
+    
+    # 4. חישוב הטורסיה לפי הנוסחה: [ (v x a) . j ] / |v x a|^2
+    
+    cross_va = np.cross(v, a)
+    
+    numerator = np.einsum('ij,ij->i', cross_va, j)
+    
+    denominator = np.linalg.norm(cross_va, axis=1)**2
+
+    tau = numerator / (denominator + eps_stability)
+
+    return tau[:, np.newaxis]
+          
+
 if __name__ == '__main__':
 
     R = 10
