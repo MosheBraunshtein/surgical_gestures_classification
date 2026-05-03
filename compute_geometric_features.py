@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.interpolate import splprep, splev
+from scipy.spatial.transform import Rotation
 
 def compute_kappa(pos, s=0.1):
     print("COMPUTE KAPPA..")
@@ -60,6 +61,49 @@ def compute_tau(pos, s=0.1):
 
     return tau[:, np.newaxis]
           
+def compute_lambda(R):
+    
+    print("COMPUTE LAMBDA..")
+    eps = 10**(-5)
+
+    R_3_3_vec = R.reshape(-1, 3, 3)
+    r_vec = Rotation.from_dcm(R_3_3_vec)
+    quat = r_vec.as_quat()
+
+    # 1. compute q_2tag
+
+    q_cur_vec = quat[1:-1,:].copy()
+    q_prev_vec = quat[0:-2,:].copy()
+    q_next_vec = quat[2:,:].copy()
+
+    # 1.2 compute l 
+    # 1.2.1 compute quaternion dot product
+    q_dot_prev_cur = np.einsum('ij,ij->i', q_prev_vec, q_cur_vec).reshape(-1,1)
+    q_dot_cur_next = np.einsum('ij,ij->i', q_cur_vec, q_next_vec).reshape(-1,1)
+    
+    temp1 = np.arccos(np.clip(q_dot_prev_cur,-1,1))
+    temp2 = np.arccos(np.clip(q_dot_cur_next,-1,1))
+    l = temp1/2 + temp2/2
+
+    denominator = l**2
+    numerator = q_prev_vec-2*q_cur_vec+q_next_vec
+
+    q_2tag = numerator/(denominator+eps)
+
+    q_2tag_dot_q = np.einsum('ij,ij->i', q_2tag, q_cur_vec).reshape(-1,1)
+
+    q_2tag_dot_q__scalarMulti_q = q_cur_vec*q_2tag_dot_q
+
+    temp = q_2tag_dot_q - q_2tag_dot_q__scalarMulti_q
+
+    _lambda = np.sqrt(np.einsum('ij,ij->i', temp, temp).reshape(-1,1))
+
+    return _lambda
+
+
+
+    
+
 
 if __name__ == '__main__':
 
