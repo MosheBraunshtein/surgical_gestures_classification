@@ -35,6 +35,8 @@ def define_and_process_args():
     parser.add_argument('--data_filename', default='standardized_data.pkl',
                         help='''The name of the standardized-data pkl file that
                                 resides in data_dir.''')
+    parser.add_argument('--log_dir', default=None,
+                        help='features names.')
     parser.add_argument('--test_users', default='B',
                         help='''A string of the users that make up the test set,
                                 with users separated by spaces.''')
@@ -113,7 +115,7 @@ def get_log_dir(args):
 
     test_users_str = '_'.join(args.test_users)
 
-    return os.path.join(args.data_dir, 'logs','kappa_gripper', params_str, test_users_str)
+    return os.path.join(args.data_dir, 'logs', args.log_dir , params_str, test_users_str)
 
 
 def train(sess, model, optimizer, log_dir, batch_size, num_sweeps_per_summary,
@@ -265,10 +267,7 @@ def main():
         raise ValueError(message)
 
     dataset = data.Dataset(standardized_data_path)
-    all_data = dataset.all_data
-    print(type(all_data))
-    print(all_data['Suturing_B001'].shape)
-    exit(0)
+
     train_raw_seqs, test_raw_seqs = dataset.get_splits(args.test_users)
     train_triplets = [data.prepare_raw_seq(seq) for seq in train_raw_seqs]
     test_triplets = [data.prepare_raw_seq(seq) for seq in test_raw_seqs]

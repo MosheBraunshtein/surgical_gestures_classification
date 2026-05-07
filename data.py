@@ -157,17 +157,6 @@ def prepare_raw_seq(seq):
         label_seq: A 2-D int NumPy array with shape `[duration, 1]`.
     """
 
-    """
-    input_seq 
-    ['PSM1_pos_x', 'PSM1_pos_y', 'PSM1_pos_z', 'PSM1_vel_x',
-     'PSM1_vel_y', 'PSM1_vel_z', 'PSM1_gripper',
-     'PSM2_pos_x', 'PSM2_pos_y', 'PSM2_pos_z', 'PSM_2_vel_x',
-     'PSM2_vel_y', 'PSM2_vel_z', 'PSM2_gripper',
-     'PSM1_kappa', 'PSM2_kappa',
-     'label'
-    ]
-
-    """
     input_seq = seq[:, :-1].astype(np.float)
     input_seq = normalize_seq(input_seq).astype(np.float32)
     duration = input_seq.shape[0]

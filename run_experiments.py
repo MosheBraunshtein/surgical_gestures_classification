@@ -8,6 +8,10 @@ users_to_test = ["B", "C", "D", "E", "F", "G", "H", "I"]
 
 script_name = "train_and_summarize.py"
 
+data_filename = 'standardized_data_kappa_lambda_gripper.pkl'
+
+log_dir = 'kappa_lambda_gripper'
+
 print("--- Starting Manager ---")
 print("Python version:", sys.version)
 print("Current directory:", os.getcwd())
@@ -16,7 +20,7 @@ for user in users_to_test:
     print("\n>>> Testing User: {}".format(user))
     sys.stdout.flush()
 
-    cmd = [sys.executable, script_name, "--test_users", user,"--hidden_layer_size", "512"]
+    cmd = [sys.executable, script_name, "--test_users", user,'--data_filename',data_filename,'--log_dir',log_dir,"--hidden_layer_size", "512"]
     
     try:
         process = subprocess.Popen(

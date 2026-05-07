@@ -15,7 +15,8 @@ import data
 from compute_geometric_features import compute_kappa, compute_tau, compute_lambda
 
 DATASET_NAME = 'JIGSAWS'
-ORIG_CLASS_IDS = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11]
+TASK = 'Needle_Passing' # Suturing / Needle_Passing
+ORIG_CLASS_IDS = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11] # suturing # needle passing * JUST FEW G9,G10
 NEW_CLASS_IDS = range(len(ORIG_CLASS_IDS))
 CLASSES = ['G%d' % id for id in ORIG_CLASS_IDS]
 NUM_CLASSES = len(CLASSES)
@@ -25,34 +26,47 @@ NUM_CLASSES = len(CLASSES)
 # JIGSAWS/Experimental/Suturing/unBalanced/GestureRecognition/UserOut
 # (User H's 2nd trial is left out because no video was available for labeling.)
 USER_TO_TRIALS = {
-    'B': [1, 2, 3, 4, 5],
-    'C': [1, 2, 3, 4, 5],
-    'D': [1, 2, 3, 4, 5],
-    'E': [1, 2, 3, 4, 5],
-    'F': [1, 2, 3, 4, 5],
-    'G': [1, 2, 3, 4, 5],
-    'H': [1,    3, 4, 5],
-    'I': [1, 2, 3, 4, 5]
+    'Suturing': {
+        'B': [1, 2, 3, 4, 5],
+        'C': [1, 2, 3, 4, 5],
+        'D': [1, 2, 3, 4, 5],
+        'E': [1, 2, 3, 4, 5],
+        'F': [1, 2, 3, 4, 5],
+        'G': [1, 2, 3, 4, 5],
+        'H': [1,    3, 4, 5],
+        'I': [1, 2, 3, 4, 5]
+    },
+    'Needle_Passing': {
+        'B': [1, 2, 3, 4   ],
+        'C': [1, 2, 3, 4, 5],
+        'D': [1, 2, 3, 4, 5],
+        'E': [1,    3, 4, 5],
+        'F': [1,    3, 4   ],
+        'H': [   2,    4, 5],
+        'I': [   2, 3, 4, 5]
+    }
 }
 
-ALL_USERS = sorted(USER_TO_TRIALS.keys())
+
+
+ALL_USERS = sorted(USER_TO_TRIALS[TASK].keys())
 
 # KINEMATICS_USECOLS = [c-1 for c in [39, 40, 41, 51, 52, 53, 57,
 #                                     58, 59, 60, 70, 71, 72, 76]]
-# KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
-#                         'vel_y', 'vel_z', 'gripper']*2
+KINEMATICS_USECOLS = [c-1 for c in [39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 57,
+                                    58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 76]]
+
+KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
+                        'vel_y', 'vel_z', 'gripper']*2
 # KINEMATICS_COL_NAMES = ['kappa', 'gripper',]*2
 # KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'kappa', 'vel_x',
 #                         'vel_y', 'vel_z', 'gripper']*2
 # KINEMATICS_COL_NAMES = ['kappa', 'tau', 'gripper',]*2
 # KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'kappa', 'tau', 'vel_x',
 #                         'vel_y', 'vel_z', 'gripper']*2
+# KINEMATICS_COL_NAMES = ['kappa', 'tau', 'lambda', 'gripper']*2
 
 
-KINEMATICS_USECOLS = [c-1 for c in [39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 57,
-                                    58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 76]]
-
-KINEMATICS_COL_NAMES = ['kappa', 'tau', 'lambda', 'gripper']*2
 
 LABELS_USECOLS = [0, 1, 2]
 LABELS_COL_NAMES = ['start_frame', 'end_frame', 'string_label']
@@ -72,9 +86,9 @@ def define_and_process_args():
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=formatter_class)
 
-    parser.add_argument('--data_dir', default=r'C:\Users\win10\desktop\data\JIGSAWS\Suturing',
+    parser.add_argument('--data_dir', default=fr'C:\Users\win10\desktop\data\JIGSAWS\{TASK}',
                         help='Data directory.')
-    parser.add_argument('--data_filename', default='standardized_data.pkl',
+    parser.add_argument('--data_filename', default='standardized_data_GH.pkl',
                         help='''The name of the standardized-data pkl file that
                                 we'll create inside data_dir.''')
 
@@ -93,7 +107,7 @@ def get_trial_name(user, trial):
     Returns:
         A string.
     """
-    return 'Suturing_%s%03d' % (user, trial)
+    return '%s_%s%03d' % (TASK, user, trial)
 
 
 def load_kinematics(data_dir, trial_name):
@@ -220,7 +234,7 @@ def main():
 
     args = define_and_process_args()
 
-    print('Standardizing JIGSAWS..')
+    print(f'Standardizing JIGSAWS:{TASK}..\n')
     print()
 
     print('%d classes:' % NUM_CLASSES)
@@ -228,7 +242,7 @@ def main():
     print()
 
     user_to_trial_names = {}
-    for user, trials in USER_TO_TRIALS.items():
+    for user, trials in USER_TO_TRIALS[TASK].items():
         user_to_trial_names[user] = [get_trial_name(user, trial)
                                      for trial in trials]
     print('Users and corresponding trial names:')
@@ -249,7 +263,7 @@ def main():
                     load_kinematics_and_new_labels(args.data_dir, trial_name),
                     factor=6)
                 for trial_name in all_trial_names}
-
+    print(needle_passing_orig_ids)
     print('Downsampled to 5 Hz.')
     print()
 
