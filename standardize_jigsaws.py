@@ -56,15 +56,17 @@ ALL_USERS = sorted(USER_TO_TRIALS[TASK].keys())
 KINEMATICS_USECOLS = [c-1 for c in [39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 57,
                                     58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 76]]
 
-KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
-                        'vel_y', 'vel_z', 'gripper']*2
-# KINEMATICS_COL_NAMES = ['kappa', 'gripper',]*2
+# KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'vel_x',
+#                         'vel_y', 'vel_z', 'gripper']*2
 # KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'kappa', 'vel_x',
 #                         'vel_y', 'vel_z', 'gripper']*2
-# KINEMATICS_COL_NAMES = ['kappa', 'tau', 'gripper',]*2
 # KINEMATICS_COL_NAMES = ['pos_x', 'pos_y', 'pos_z', 'kappa', 'tau', 'vel_x',
 #                         'vel_y', 'vel_z', 'gripper']*2
-# KINEMATICS_COL_NAMES = ['kappa', 'tau', 'lambda', 'gripper']*2
+
+# KINEMATICS_COL_NAMES = ['kappa', 'gripper',]*2
+# KINEMATICS_COL_NAMES = ['kappa', 'tau', 'gripper',]*2
+# KINEMATICS_COL_NAMES = ['kappa', 'lambda', 'gripper',]*2
+KINEMATICS_COL_NAMES = ['kappa', 'tau', 'lambda', 'gripper']*2
 
 
 
@@ -88,7 +90,7 @@ def define_and_process_args():
 
     parser.add_argument('--data_dir', default=fr'C:\Users\win10\desktop\data\JIGSAWS\{TASK}',
                         help='Data directory.')
-    parser.add_argument('--data_filename', default='standardized_data_GH.pkl',
+    parser.add_argument('--data_filename', default='standardized_data_kappa_tau_lambda_gripper.pkl',
                         help='''The name of the standardized-data pkl file that
                                 we'll create inside data_dir.''')
 
@@ -182,12 +184,13 @@ def load_kinematics_and_labels(data_dir, trial_name):
         labels[mask] = label
     labels_data = labels.reshape(-1, 1)
     labels_data = labels_data[1:-1, :]
-
-
-
+    # print(f"kinematics data shape: {kinematics_data.shape}")
+    # print(f"labels data shape: {labels_data.shape}")
+    # exit(0)
     # data = np.concatenate([kinematics_data, labels_data], axis=1)
-    # data = np.concatenate([ psm1_kappa, psm1_gripper, psm2_kappa, psm2_gripper, labels_data], axis=1)
     # data = np.concatenate([kinematics_data, psm1_kappa, psm2_kappa, labels_data], axis=1)
+    # data = np.concatenate([kinematics_data, psm1_kappa, psm1_tau, psm2_kappa, psm2_tau, labels_data], axis=1)
+    # data = np.concatenate([psm1_kappa, psm1_gripper, psm2_kappa, psm2_gripper, labels_data], axis=1)
     # data = np.concatenate([psm1_kappa, psm1_tau, psm1_gripper, psm2_kappa, psm2_tau, psm2_gripper, labels_data], axis=1)
     # data = np.concatenate([psm1_kappa, psm1_lambda, psm1_gripper, psm2_kappa, psm2_lambda, psm2_gripper, labels_data], axis=1)
     data = np.concatenate([psm1_kappa, psm1_tau, psm1_lambda, psm1_gripper, psm2_kappa, psm2_tau, psm2_lambda, psm2_gripper, labels_data], axis=1)
@@ -263,7 +266,6 @@ def main():
                     load_kinematics_and_new_labels(args.data_dir, trial_name),
                     factor=6)
                 for trial_name in all_trial_names}
-    print(needle_passing_orig_ids)
     print('Downsampled to 5 Hz.')
     print()
 
