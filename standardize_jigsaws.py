@@ -64,6 +64,24 @@ def load_kinematics_and_new_labels_for_GH_kappa(data_dir, trial_name):
 
     return data[labeled_data_only_mask, :]
 
+def load_kinematics_and_new_labels_for_speed_kappa_gripper(data_dir, trial_name):
+    print('process speed_kappa_gripper set ...')
+    labels_dir = os.path.join(data_dir, 'transcriptions')
+    labels_path = os.path.join(labels_dir, trial_name + '.txt')
+
+    seq_len, (psm1_pos, psm1_vel, _, psm2_pos, psm2_vel, _, psm1_gripper, psm2_gripper) = load_kinematics(data_dir, trial_name)
+    labels_data = load_labels(labels_path, seq_len)
+
+    psm1_kappa = compute_kappa(psm1_pos, s=5)
+    psm2_kappa = compute_kappa(psm2_pos, s=5)
+    psm1_speed, psm2_speed = np.linalg.norm(psm1_vel, axis=1), np.linalg.norm(psm2_vel, axis=1)
+
+    data = np.concatenate([psm1_speed, psm1_kappa, psm2_speed, psm2_kappa, psm1_gripper, psm2_gripper, labels_data], axis=1)
+
+    labeled_data_only_mask = labels_data.flatten() != 0
+
+    return data[labeled_data_only_mask, :]
+
 def load_kinematics_and_new_labels_for_GH_kappa_tau(data_dir, trial_name):
     print('process GH_kappa_tau set ...')
     labels_dir = os.path.join(data_dir, 'transcriptions')
@@ -76,6 +94,24 @@ def load_kinematics_and_new_labels_for_GH_kappa_tau(data_dir, trial_name):
     psm1_tau, psm2_tau = compute_tau(psm1_pos, s=5), compute_tau(psm2_pos, s=5)
 
     data = np.concatenate([psm1_pos, psm1_vel, psm1_kappa, psm1_tau, psm2_pos, psm2_vel, psm2_kappa, psm2_tau, psm1_gripper, psm2_gripper, labels_data], axis=1)
+
+    labeled_data_only_mask = labels_data.flatten() != 0
+
+    return data[labeled_data_only_mask, :]
+
+def load_kinematics_and_new_labels_for_speed_kappa_tau_gripper(data_dir, trial_name):
+    print('process speed_kappa_tau_gripper set ...')
+    labels_dir = os.path.join(data_dir, 'transcriptions')
+    labels_path = os.path.join(labels_dir, trial_name + '.txt')
+
+    seq_len, (psm1_pos, psm1_vel, _, psm2_pos, psm2_vel, _, psm1_gripper, psm2_gripper) = load_kinematics(data_dir, trial_name)
+    labels_data = load_labels(labels_path, seq_len)
+
+    psm1_kappa, psm2_kappa = compute_kappa(psm1_pos, s=5), compute_kappa(psm2_pos, s=5)
+    psm1_tau, psm2_tau = compute_tau(psm1_pos, s=5), compute_tau(psm2_pos, s=5)
+    psm1_speed, psm2_speed = np.linalg.norm(psm1_vel, axis=1), np.linalg.norm(psm2_vel, axis=1)
+
+    data = np.concatenate([psm1_speed, psm1_kappa, psm1_tau, psm2_speed, psm2_kappa, psm2_tau, psm1_gripper, psm2_gripper, labels_data], axis=1)
 
     labeled_data_only_mask = labels_data.flatten() != 0
 
@@ -105,6 +141,28 @@ def load_kinematics_and_new_labels_for_GH_kappa_lambda(data_dir, trial_name):
     labeled_data_only_mask = labels_data.flatten() != 0
 
     return data[labeled_data_only_mask, :]
+
+def load_kinematics_and_new_labels_for_speed_kappa_lambda_gripper(data_dir, trial_name):
+    print('process speed_kappa_lambda_gripper set ...')
+    labels_dir = os.path.join(data_dir, 'transcriptions')
+    labels_path = os.path.join(labels_dir, trial_name + '.txt')
+
+    seq_len, (psm1_pos, psm1_vel, psm1_R, psm2_pos, psm2_vel, psm2_R, psm1_gripper, psm2_gripper) = load_kinematics(data_dir, trial_name)
+    labels_data = load_labels(labels_path, seq_len)
+
+    psm1_kappa, psm2_kappa = compute_kappa(psm1_pos, s=5)[1:-1,:], compute_kappa(psm2_pos, s=5)[1:-1,:]
+    psm1_lambda, psm2_lambda = compute_lambda(psm1_R), compute_lambda(psm2_R)
+    psm1_speed, psm2_speed = np.linalg.norm(psm1_vel, axis=1), np.linalg.norm(psm2_vel, axis=1)
+
+    labels_data = labels_data[1:-1,:]
+    psm1_gripper = psm1_gripper[1:-1,:], psm2_gripper[1:-1,:]
+    psm1_speed, psm2_speed = psm1_speed[1:-1,:], psm2_speed[1:-1,:]
+
+    data = np.concatenate([psm1_speed, psm1_kappa, psm1_lambda, psm2_speed, psm2_kappa, psm2_lambda, psm1_gripper, psm2_gripper, labels_data], axis=1)
+
+    labeled_data_only_mask = labels_data.flatten() != 0
+
+    return data[labeled_data_only_mask, :]
     
 def load_kinematics_and_new_labels_for_GH_kappa_tau_lambda(data_dir, trial_name):
     print('process GH_kappa_tau_lambda set ...')
@@ -128,6 +186,30 @@ def load_kinematics_and_new_labels_for_GH_kappa_tau_lambda(data_dir, trial_name)
     psm2_gripper = psm2_gripper[1:-1,:]
 
     data = np.concatenate([psm1_pos, psm1_vel, psm1_kappa, psm1_tau, psm1_lambda, psm2_pos, psm2_vel, psm2_kappa, psm2_tau, psm2_lambda, psm1_gripper, psm2_gripper, labels_data], axis=1)
+
+    labeled_data_only_mask = labels_data.flatten() != 0
+    
+    return data[labeled_data_only_mask, :]
+
+def load_kinematics_and_new_labels_for_speed_kappa_tau_lambda_gripper(data_dir, trial_name):
+    print('process speed_kappa_tau_lambda_gripper set ...')
+    labels_dir = os.path.join(data_dir, 'transcriptions')
+    labels_path = os.path.join(labels_dir, trial_name + '.txt')
+
+    seq_len, (psm1_pos, psm1_vel, psm1_R, psm2_pos, psm2_vel, psm2_R, psm1_gripper, psm2_gripper) = load_kinematics(data_dir, trial_name)
+    labels_data = load_labels(labels_path, seq_len)
+
+    psm1_kappa, psm2_kappa = compute_kappa(psm1_pos, s=5)[1:-1,:], compute_kappa(psm2_pos, s=5)[1:-1,:]
+    psm1_tau, psm2_tau = compute_tau(psm1_pos, s=5)[1:-1,:], compute_tau(psm2_pos, s=5)[1:-1,:]
+    psm1_speed, psm2_speed = np.linalg.norm(psm1_vel, axis=1), np.linalg.norm(psm2_vel, axis=1)
+
+    psm1_lambda, psm2_lambda = compute_lambda(psm1_R), compute_lambda(psm2_R)
+
+    labels_data = labels_data[1:-1,:]
+    psm1_gripper, psm2_gripper = psm1_gripper[1:-1,:], psm2_gripper[1:-1,:]
+    psm1_speed, psm2_speed = psm1_speed[1:-1,:], psm2_speed[1:-1,:]
+
+    data = np.concatenate([psm1_speed, psm1_kappa, psm1_tau, psm1_lambda, psm2_speed, psm2_kappa, psm2_tau, psm2_lambda, psm1_gripper, psm2_gripper, labels_data], axis=1)
 
     labeled_data_only_mask = labels_data.flatten() != 0
     
@@ -207,15 +289,19 @@ def load_kinematics_and_new_labels_for_kappa_tau_lambda_gripper(data_dir, trial_
     return data[labeled_data_only_mask, :]
 
 features = {
-    "standardized_data_GH": (['pos_x', 'pos_y', 'pos_z', 'vel_x', 'vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH),
-    "standardized_data_GH_kappa":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'vel_x','vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa),
-    "standardized_data_GH_kappa_tau":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'tau', 'vel_x', 'vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa_tau),
-    "standardized_data_GH_kappa_lambda":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'lambda', 'vel_x','vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa_lambda),
-    "standardized_data_GH_kappa_tau_lambda":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'tau', 'lambda', 'vel_x','vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa_tau_lambda),
-    "standardized_data_kappa_gripper":(['kappa', 'gripper',]*2, load_kinematics_and_new_labels_for_kappa_gripper),
-    "standardized_data_kappa_tau_gripper":(['kappa', 'tau', 'gripper',]*2, load_kinematics_and_new_labels_for_kappa_tau_gripper),
-    "standardized_data_kappa_lambda_gripper":(['kappa', 'lambda', 'gripper',]*2, load_kinematics_and_new_labels_for_kappa_lambda_gripper),
-    "standardized_data_kappa_tau_lambda_gripper":(['kappa', 'tau', 'lambda', 'gripper']*2, load_kinematics_and_new_labels_for_kappa_tau_lambda_gripper)
+    "GH": (['pos_x', 'pos_y', 'pos_z', 'vel_x', 'vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH),
+    "GH_kappa":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'vel_x','vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa),
+    "GH_kappa_tau":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'tau', 'vel_x', 'vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa_tau),
+    "GH_kappa_lambda":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'lambda', 'vel_x','vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa_lambda),
+    "GH_kappa_tau_lambda":(['pos_x', 'pos_y', 'pos_z', 'kappa', 'tau', 'lambda', 'vel_x','vel_y', 'vel_z', 'gripper']*2, load_kinematics_and_new_labels_for_GH_kappa_tau_lambda),
+    "kappa_gripper":(['kappa', 'gripper',]*2, load_kinematics_and_new_labels_for_kappa_gripper),
+    "kappa_tau_gripper":(['kappa', 'tau', 'gripper',]*2, load_kinematics_and_new_labels_for_kappa_tau_gripper),
+    "kappa_lambda_gripper":(['kappa', 'lambda', 'gripper',]*2, load_kinematics_and_new_labels_for_kappa_lambda_gripper),
+    "kappa_tau_lambda_gripper":(['kappa', 'tau', 'lambda', 'gripper']*2, load_kinematics_and_new_labels_for_kappa_tau_lambda_gripper),
+    "speed_kappa_gripper":(['speed','kappa', 'gripper',]*2, load_kinematics_and_new_labels_for_speed_kappa_gripper),
+    "speed_kappa_tau_gripper":(['speed','kappa', 'tau', 'gripper',]*2, load_kinematics_and_new_labels_for_speed_kappa_tau_gripper),
+    "speed_kappa_lambda_gripper":(['speed','kappa', 'lambda', 'gripper',]*2, load_kinematics_and_new_labels_for_speed_kappa_lambda_gripper),
+    "speed_kappa_tau_lambda_gripper":(['speed','kappa', 'tau', 'lambda', 'gripper']*2, load_kinematics_and_new_labels_for_speed_kappa_tau_lambda_gripper)
     }
 
 USER_TO_TRIALS = {
@@ -237,13 +323,22 @@ USER_TO_TRIALS = {
         'F': [1,    3, 4   ],
         'H': [   2,    4, 5],
         'I': [   2, 3, 4, 5]
+    },
+    'Needle_Passing_A': {
+        'B': [1, 2, 3, 4   ],
+        'C': [1, 2, 3, 4, 5],
+        'D': [1, 2, 3, 4, 5],
+        'E': [1,    3, 4, 5],
+        'F': [1,    3, 4   ],
+        'H': [   2,    4, 5],
+        'I': [   2, 3, 4, 5]
     }
 } 
 
 FEATURES_SET = "standardized_data_GH_kappa_tau_lambda"
 
 DATASET_NAME = 'JIGSAWS'
-TASK = 'Needle_Passing' # Suturing / Needle_Passing
+TASK = 'Suturing' # Suturing / Needle_Passing / Needle_Passing_A
 ORIG_CLASS_IDS = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11] # suturing # needle passing * JUST FEW G9,G10
 NEW_CLASS_IDS = range(len(ORIG_CLASS_IDS))
 CLASSES = ['G%d' % id for id in ORIG_CLASS_IDS]
